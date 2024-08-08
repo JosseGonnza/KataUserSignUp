@@ -1,10 +1,13 @@
+using KataUserSignUp.Models;
+using KataUserSignUp.Repositories;
+using KataUserSignUp.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KataUserSignUp.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class UserController : ControllerBase
+public partial class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
 
@@ -23,29 +26,23 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public Guid Post(UserRequest request)
+    public IActionResult Post(UserRequest request)
     {
-        User user = new User(Guid.NewGuid(), request.email, request.password);
+        User user;
+
+        try
+        {
+            user = new User(Guid.NewGuid(), request.email, Password.create(request.password));
+        }
+        catch(ArgumentException){
+            return BadRequest();
+        } 
+
         _userRepository.save(user);
 
         _logger.LogInformation("Usuario nuevo creado {id} con este email {email}", user.id, user.email);
 
-        return user.id;
+        return Ok(user.id);
     }
-}
 
-public record User(Guid id, string email, string password);
-
-public record UserRequest(string email, string password);
-
-public class UserRepository
-{
-    private List<User> _users = new List<User>();
-
-    public List<User> getAll() => _users;
-
-    internal void save(User user)
-    {
-        _users.Add(user);
-    }
 }

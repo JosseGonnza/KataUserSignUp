@@ -1,4 +1,4 @@
-using KataUserSignUp.Controllers;
+using KataUserSignUp.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
